@@ -10,6 +10,7 @@ int countOfPrintSymbol(const char *str, int size)
 	}
 	return count;
 }
+
 int main(int argc, char **argv)
 {
 	setlocale(LC_ALL, "rus");
