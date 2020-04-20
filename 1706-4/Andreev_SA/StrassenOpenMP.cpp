@@ -130,9 +130,8 @@ bool matComparison(double* matrix1, double* matrix2, int N)
     return true;
 }
 
-double* Str_alg(double* matrix1, double* matrix2, int N, int threshold);
 
-double* StrassenParallel(double* matrix1, double* matrix2, int N, int threshold, int ThreadsNum)
+double* StrassenParallel(double* matrix1, double* matrix2, int N, int threshold)
 {
     double* Rez;
 
@@ -224,45 +223,64 @@ double* StrassenParallel(double* matrix1, double* matrix2, int N, int threshold,
             {
 #pragma omp section
                 {
-                    P[0] = StrassenParallel(TMP1, TMP2, N, threshold, ThreadsNum); // (A11 + A22)*(B11 + B22)
+                    P[0] = StrassenParallel(TMP1, TMP2, N, threshold); // (A11 + A22)*(B11 + B22)
                 }
 #pragma omp section
                 {
-                    P[1] = StrassenParallel(TMP3, B[0], N, threshold, ThreadsNum); // (A21 + A22)*B11
+                    P[1] = StrassenParallel(TMP3, B[0], N, threshold); // (A21 + A22)*B11
                 }
 #pragma omp section
-                    P[2] = StrassenParallel(A[0], TMP4, N, threshold, ThreadsNum); // A11*(B12 - B22)
+                {
+                    P[2] = StrassenParallel(A[0], TMP4, N, threshold); // A11*(B12 - B22)
+                }
 #pragma omp section
-                    P[3] = StrassenParallel(A[3], TMP5, N, threshold, ThreadsNum); // A22*(B21 - B11)
+                {
+                    P[3] = StrassenParallel(A[3], TMP5, N, threshold); // A22*(B21 - B11)
+                }
 #pragma omp section
-                    P[4] = StrassenParallel(TMP6, B[3], N, threshold, ThreadsNum); // (A11 + A12)*B22
+                {
+                    P[4] = StrassenParallel(TMP6, B[3], N, threshold); // (A11 + A12)*B22
+                }
 #pragma omp section
-                    P[5] = StrassenParallel(TMP7, TMP8, N, threshold, ThreadsNum); // (A21 - A11)*(B11 + B12)
+                {
+                    P[5] = StrassenParallel(TMP7, TMP8, N, threshold); // (A21 - A11)*(B11 + B12)
+                }
 #pragma omp section
-                    P[6] = StrassenParallel(TMP9, TMP10, N, threshold, ThreadsNum); // (A12 - A22)*(B21 + B22)
+                {
+                    P[6] = StrassenParallel(TMP9, TMP10, N, threshold); // (A12 - A22)*(B21 + B22)
+                }
             }
 
 
 #pragma omp sections
             {
 #pragma omp section
+                {
                     C[0] = Sub(P[0], P[3], P[6], P[4], N); // P1 + P4 - P5 + P7
+                }
 #pragma omp section
+                {
                     C[1] = Add(P[2], P[4], N); // P3 + P5
+                }
 #pragma omp section
+                {
                     C[2] = Add(P[1], P[3], N); // P2 + P4
+                }
 #pragma omp section
+                {
                     C[3] = Sub(P[0], P[2], P[5], P[1], N); // P1 - P2 + P3 + P6
+                }
             }
 
 #pragma omp for private(i,j) schedule(static)
-            for (i = 0; i < N; i++)
+            for (i = 0; i < N; i++) {
                 for (j = 0; j < N; j++) {
                     Rez[i * 2 * N + j] = C[0][i * N + j];
                     Rez[i * 2 * N + j + N] = C[1][i * N + j];
                     Rez[i * 2 * N + j + 2 * N * N] = C[2][i * N + j];
                     Rez[i * 2 * N + j + 2 * N * N + N] = C[3][i * N + j];
                 }
+            }
         }
 
         for (int i = 0; i < 4; i++) {
@@ -337,7 +355,7 @@ int main()
     endStras = omp_get_wtime();
 
     startStrasParallel = omp_get_wtime();
-    matResParallel = StrassenParallel(matA, matB, Size, 64, ThreadsNum);
+    matResParallel = StrassenParallel(matA, matB, Size, 64);
     endStrasParallel = omp_get_wtime();
 
     if (matComparison(matRes, matResParallel, Size) != true) { std::cout << "Mats are not equal" << std::endl<<std::endl; }
