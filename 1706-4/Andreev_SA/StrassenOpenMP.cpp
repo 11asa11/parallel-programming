@@ -131,6 +131,8 @@ bool matComparison(double* matrix1, double* matrix2, int N)
 }
 
 
+double* Str_alg(double* matrix1, double* matrix2, int N, int threshold);
+
 double* StrassenParallel(double* matrix1, double* matrix2, int N, int threshold)
 {
     double* Rez;
@@ -223,31 +225,31 @@ double* StrassenParallel(double* matrix1, double* matrix2, int N, int threshold)
             {
 #pragma omp section
                 {
-                    P[0] = StrassenParallel(TMP1, TMP2, N, threshold); // (A11 + A22)*(B11 + B22)
+                    P[0] = Str_alg(TMP1, TMP2, N, threshold); // (A11 + A22)*(B11 + B22)
                 }
 #pragma omp section
                 {
-                    P[1] = StrassenParallel(TMP3, B[0], N, threshold); // (A21 + A22)*B11
+                    P[1] = Str_alg(TMP3, B[0], N, threshold); // (A21 + A22)*B11
                 }
 #pragma omp section
                 {
-                    P[2] = StrassenParallel(A[0], TMP4, N, threshold); // A11*(B12 - B22)
+                    P[2] = Str_alg(A[0], TMP4, N, threshold); // A11*(B12 - B22)
                 }
 #pragma omp section
                 {
-                    P[3] = StrassenParallel(A[3], TMP5, N, threshold); // A22*(B21 - B11)
+                    P[3] = Str_alg(A[3], TMP5, N, threshold); // A22*(B21 - B11)
                 }
 #pragma omp section
                 {
-                    P[4] = StrassenParallel(TMP6, B[3], N, threshold); // (A11 + A12)*B22
+                    P[4] = Str_alg(TMP6, B[3], N, threshold); // (A11 + A12)*B22
                 }
 #pragma omp section
                 {
-                    P[5] = StrassenParallel(TMP7, TMP8, N, threshold); // (A21 - A11)*(B11 + B12)
+                    P[5] = Str_alg(TMP7, TMP8, N, threshold); // (A21 - A11)*(B11 + B12)
                 }
 #pragma omp section
                 {
-                    P[6] = StrassenParallel(TMP9, TMP10, N, threshold); // (A12 - A22)*(B21 + B22)
+                    P[6] = Str_alg(TMP9, TMP10, N, threshold); // (A12 - A22)*(B21 + B22)
                 }
             }
 
@@ -338,18 +340,6 @@ int main()
 
     GenerateRandomMatrix(matA, matB, Size);
 
-    //std::cout << "Matrix A:" << std::endl;
-    //PrintMatrix(matA, Size);
-
-    //std::cout << "Matrix B:" << std::endl;
-    //PrintMatrix(matB, Size);
-
-    //startDefaultMult = omp_get_wtime();
-    // matResDefaultMult = defaultMult(matA, matB, Size);
-    //endDefaultMult = omp_get_wtime();
-
-    //std::cout << "Threads: "<<omp_get_num_threads()<<std::endl;
-
     startStras = omp_get_wtime();
     matRes = Str_alg(matA, matB, Size, 64);
     endStras = omp_get_wtime();
@@ -358,17 +348,15 @@ int main()
     matResParallel = StrassenParallel(matA, matB, Size, 64);
     endStrasParallel = omp_get_wtime();
 
-    if (matComparison(matRes, matResParallel, Size) != true) { std::cout << "Mats are not equal" << std::endl<<std::endl; }
-    else { std::cout << "Mats are equal" << std::endl<<std::endl; }
+    if (matComparison(matRes, matResParallel, Size) != true) { std::cout << "Mats are not equal" << std::endl << std::endl; }
+    else { std::cout << "Mats are equal" << std::endl << std::endl; }
 
-    //std::cout << "Default multiplication: "<<(endDefaultMult - startDefaultMult) << std::endl;
     std::cout << "Strassen alg: " << (endStras - startStras) << std::endl;
     std::cout << "Strassen alg parallel: " << (endStrasParallel - startStrasParallel) << std::endl;
 
 
     delete[] matA;
     delete[] matB;
-    //delete matResDefaultMult;
     delete[] matRes;
     delete[] matResParallel;
 
