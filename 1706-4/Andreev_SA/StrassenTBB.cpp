@@ -263,8 +263,8 @@ int main()
     std::cin >> ThreadsNum;
     std::cout << std::endl;
 
-    task_scheduler_init init(ThreadsNum); // Инициализация по умолчанию
-    //init.initialize(ThreadsNum); // инициализация ThreadsNum потоками
+    task_scheduler_init init(ThreadsNum);
+    //init.initialize(ThreadsNum);
 
     double* matA = nullptr;
     double* matB = nullptr;
